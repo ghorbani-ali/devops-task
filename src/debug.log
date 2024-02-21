@@ -1,0 +1,4 @@
+[x][x] amqp : connected
+ [*] Waiting for messages in %s.
+redisSetKey:
+2024-02-21 18:22:30 : Syncing data...
