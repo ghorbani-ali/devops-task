@@ -9,13 +9,14 @@ const pool = new Pool({
     port: config.pg.pgPort
 })
 pool.on('connect', async client => {
-    client.query(`create table if not exists ${config.pg.pgSchema}.test (id   integer generated always as identity constraint test_pk primary key, date timestamp not null);`);
+    client.query(`CREATE SCHEMA IF NOT EXISTS ${config.pg.pgSchema}`);
+    client.query(`CREATE TABLE IF NOT EXISTS "${config.pg.pgSchema}.test" (id integer generated always as identity constraint test_pk primary key, date timestamp not null);`);
 })
 
 async function insertDate(date) {
     try {
         let param = [date]
-        let query = `insert into test (date) values ($1) returning id;`
+        let query = `insert into "${config.pg.pgSchema}.test" (date) values ($1) returning id;`
         let {rows} = await pool.query(query, param)
         if (rows[0]) {
             return rows[0].id
