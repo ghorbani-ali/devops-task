@@ -1,0 +1,69 @@
+version: "3"
+
+services:
+  node:
+    build:
+      context: .
+    restart: unless-stopped
+    hostname: node
+    networks:
+    - nodeapp
+    volumes:
+      - ./src:/app/src
+      - ./.env:/app/.env
+    depends_on:
+      - rabbit
+      - redis
+      - postgres
+  
+  rabbit:
+    restart: unless-stopped
+    hostname: rabbit
+    env_file: ./.env
+    image: rabbitmq:3.12.13-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBIT_USERNAME}
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_PASSWORD}
+      - RABBITMQ_DEFAULT_VHOST=${RABBIT_V_HOST}
+    expose:
+    - '5672'
+    volumes:
+    - 'rabbit_data:/var/lib/rabbitmq/mnesia/'
+    networks:
+    - nodeapp
+
+  redis:
+    restart: unless-stopped
+    hostname: redis
+    env_file: ./.env
+    image: redis:7.2.4-alpine3.19
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    expose:
+      - '6379'
+    volumes:
+      - redis_data:/bitnami/redis/data
+    networks:
+      - nodeapp
+
+  postgres:
+    restart: always
+    image: postgres:13.14-alpine3.19
+    env_file: ./.env
+    hostname: postgres
+    volumes:
+    - postgres_data:/var/lib/postgres/data
+    environment:
+      - POSTGRES_USER=${PGUSER}
+      - POSTGRES_PASSWORD=${PGPASSWORD}
+      - POSTGRES_DB=${PGDATABASE}
+    networks:
+      - nodeapp
+
+volumes:
+  rabbit_data:
+  redis_data:
+  postgres_data:
+
+networks:
+  nodeapp:
